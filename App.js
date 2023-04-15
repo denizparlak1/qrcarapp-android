@@ -1,20 +1,37 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect } from 'react';
+import UserPageStack from "./src/pages/user/UserPage";
+import LoginPage from "./src/pages/login/LoginPage";
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+const App = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    const checkLoggedInUser = async () => {
+      const storedUserId = await AsyncStorage.getItem('userId');
+      if (storedUserId) {
+        setUserId(storedUserId);
+        setIsLoggedIn(true);
+      }
+    };
+
+    checkLoggedInUser();
+  }, []);
+
+  const handleLogin = (uid) => {
+    setUserId(uid);
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('userId');
+    setIsLoggedIn(false);
+  };
+
+  return isLoggedIn ? <UserPageStack userId={userId} onLogout={handleLogout} /> : <LoginPage onLogin={handleLogin} />;
+};
+
+export default App;
